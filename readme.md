@@ -8,12 +8,9 @@ A web app that lets users upload photos like a disposable camera—max 24 photos
 
 ## Project Structure
 ```bash
-disposable-camera-app/
-├── README.md
-├── .gitignore
-├── requirements.txt
-├── config.py
 ├── app.py
+├── config.py
+├── requirements.txt
 ├── app/
 │   ├── __init__.py
 │   ├── routes/
@@ -32,18 +29,13 @@ disposable-camera-app/
 │   │   └── gallery.html
 │   └── static/
 │       ├── css/
-│       │   └── style.css
 │       ├── js/
-│       │   └── camera.js
 │       └── images/
 ├── data/
-│   └── photos/
+│   ├── photos/
+│   └── app.db (SQLite database)
 ├── tests/
-│   ├── __init__.py
-│   ├── test_routes.py
-│   └── conftest.py
 └── docs/
-    └── API.md
 ```
 
 ## Tech Stack
