@@ -7,21 +7,44 @@ A web app that lets users upload photos like a disposable camera—max 24 photos
 🚧 **Work in Progress** — Folder structure and setup only. Core functionality coming soon.
 
 ## Project Structure
-
+```bash
 disposable-camera-app/
-├── app/                    # Flask application package
-│   ├── routes/            # URL endpoints
-│   ├── models/            # Database models
-│   ├── utils/             # Helper functions
-│   ├── templates/         # HTML templates
-│   └── static/            # CSS, JavaScript, images
-├── data/photos/           # User photo storage
-├── tests/                 # Unit tests
-├── config.py              # Configuration settings
-├── app.py                 # Application entry point
-├── requirements.txt       # Python dependencies
-└── README.md              # This file
-
+├── README.md
+├── .gitignore
+├── requirements.txt
+├── config.py
+├── app.py
+├── app/
+│   ├── __init__.py
+│   ├── routes/
+│   │   ├── __init__.py
+│   │   ├── camera.py
+│   │   └── auth.py
+│   ├── models/
+│   │   ├── __init__.py
+│   │   └── user.py
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   └── photo_handler.py
+│   ├── templates/
+│   │   ├── base.html
+│   │   ├── camera.html
+│   │   └── gallery.html
+│   └── static/
+│       ├── css/
+│       │   └── style.css
+│       ├── js/
+│       │   └── camera.js
+│       └── images/
+├── data/
+│   └── photos/
+├── tests/
+│   ├── __init__.py
+│   ├── test_routes.py
+│   └── conftest.py
+└── docs/
+    └── API.md
+```
 
 ## Tech Stack
 
@@ -53,3 +76,4 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 More details coming as development progresses.
+```
