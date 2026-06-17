@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Disposable Camera{% endblock %}
+
+{% block content %}
+<div class="camera-body">
+  <div class="camera-top">
+    <span class="brand">📷 DISPOSABLE</span>
+    <a class="admin-link" href="{{ url_for('auth.login') }}" title="Admin">⚙</a>
+  </div>
+
+  <div class="viewfinder">
+    <div id="flash" class="flash"></div>
+    {% if finished %}
+      <p class="viewfinder-text">🎞️</p>
+    {% else %}
+      <p class="viewfinder-text">Point &amp; shoot</p>
+    {% endif %}
+  </div>
+
+  <div class="counter-row">
+    <span class="counter-label">SHOTS LEFT</span>
+    <span id="frame-counter" class="counter-value">{{ remaining }} / {{ max_photos }}</span>
+  </div>
+
+  <div id="camera-controls" class="controls">
+    {% if finished %}
+      <p class="finished-msg">Roll complete! Hand the camera back to get your photos developed.</p>
+    {% else %}
+      <input type="file" id="photo-input" accept="image/*" capture="environment" hidden>
+      <button id="shutter-btn" class="shutter-btn" aria-label="Take photo"></button>
+      <p id="status-message" class="status-message"></p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/camera.js') }}"></script>
+{% endblock %}
