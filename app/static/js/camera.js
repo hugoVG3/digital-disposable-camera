@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let mediaStream      = null;
   let isBusy           = false;
   let flashEnabled     = true;   // on by default, just like a real disposable
+  let torchSupported   = false;  // detected after getUserMedia succeeds
   let wakeLock         = null;
   let toastTimer       = null;
 
@@ -35,14 +36,45 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   updateCounter(config.remaining, config.maxPhotos);
 
-  // ── Flash toggle ─────────────────────────────────────────────────
-  flashToggle.addEventListener("click", () => {
-    flashEnabled = !flashEnabled;
-    flashIcon.textContent  = flashEnabled ? "⚡" : "⚡";
+  // ── Flash / torch ─────────────────────────────────────────────────
+  // Tries hardware torch (ImageCapture constraint) when the browser and
+  // device support it. Falls back silently to the screen-flash overlay.
+  // The toggle button stays hidden until we know torch is available --
+  // no confusing dead buttons.
+  async function setTorch(on) {
+    if (!torchSupported || !mediaStream) return;
+    try {
+      const track = mediaStream.getVideoTracks()[0];
+      if (track) await track.applyConstraints({ advanced: [{ torch: on }] });
+    } catch (_) {}
+  }
+
+  function updateFlashUI() {
+    flashIcon.textContent = flashEnabled ? "⚡" : "⚡";
     flashToggle.classList.toggle("flash-off", !flashEnabled);
     flashToggle.title = flashEnabled ? "Flash activado" : "Flash desactivado";
+  }
+
+  flashToggle.addEventListener("click", () => {
+    flashEnabled = !flashEnabled;
+    updateFlashUI();
     showToast(flashEnabled ? "Flash activado" : "Flash desactivado");
   });
+
+  async function initTorchSupport() {
+    if (!mediaStream) return;
+    const track = mediaStream.getVideoTracks()[0];
+    if (!track) return;
+    const caps = track.getCapabilities ? track.getCapabilities() : {};
+    if (caps.torch) {
+      torchSupported = true;
+      flashToggle.classList.remove("hidden");
+    } else {
+      // No torch support -- hide the button, screen-flash alone isn't
+      // worth surfacing a toggle for.
+      flashToggle.classList.add("hidden");
+    }
+  }
 
   // ── Toast ─────────────────────────────────────────────────────────
   function showToast(msg, duration = 1800) {
@@ -123,6 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
         liveVideo.classList.remove("hidden");
         cameraLoading.classList.add("hidden");
         placeholder.classList.add("hidden");
+        await initTorchSupport();
         return true;
       } catch (_) {}
     }
@@ -147,10 +180,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ── Shot effects ──────────────────────────────────────────────────
-  function fireShotEffects() {
+  async function fireShotEffects() {
     if (flashEnabled) {
-      flashEl.classList.add("flash-active");
-      setTimeout(() => flashEl.classList.remove("flash-active"), 200);
+      if (torchSupported) {
+        // Hardware torch: on for ~300ms around the shot
+        await setTorch(true);
+        setTimeout(() => setTorch(false), 300);
+      } else {
+        // Fallback: white screen flash overlay
+        flashEl.classList.add("flash-active");
+        setTimeout(() => flashEl.classList.remove("flash-active"), 200);
+      }
     }
     playShutterSound();
     hapticBuzz();
@@ -161,7 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isBusy || shutterBtn.disabled) return;
     if (usingLiveCamera) {
       isBusy = true;
-      fireShotEffects();
+      await fireShotEffects();
       const blob = await captureFromLiveVideo();
       await uploadPhoto(blob, "capture.jpg");
       isBusy = false;
@@ -173,7 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
   fileInput.addEventListener("change", async () => {
     if (!fileInput.files.length) return;
     isBusy = true;
-    fireShotEffects();
+    await fireShotEffects();
     const file = fileInput.files[0];
     await uploadPhoto(file, file.name || "capture.jpg");
     fileInput.value = "";
