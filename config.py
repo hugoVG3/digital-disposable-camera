@@ -30,13 +30,26 @@ class Config:
     PHOTOS_DIR = os.environ.get("PHOTOS_DIR", os.path.join(DATA_DIR, "photos"))
     MAX_PHOTOS_PER_CAMERA = int(os.environ.get("MAX_PHOTOS_PER_CAMERA", 24))
     ALLOWED_PHOTO_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
-    # Resize photos down to this max edge (px) before saving -- keeps storage
-    # and CPU load low on a Pi Zero 2W. Disposable cameras aren't high-res anyway.
-    MAX_PHOTO_DIMENSION = int(os.environ.get("MAX_PHOTO_DIMENSION", 1600))
-    JPEG_QUALITY = int(os.environ.get("JPEG_QUALITY", 85))
 
-    # Reject absurdly large uploads outright (bytes). 15 MB is generous for a phone photo.
-    MAX_CONTENT_LENGTH = int(os.environ.get("MAX_CONTENT_LENGTH", 15 * 1024 * 1024))
+    # Quality philosophy: prefer the camera's original bytes untouched
+    # (true lossless) whenever possible -- see app/utils/photo_handler.py.
+    # These two settings are only used on the rare fallback path where a
+    # re-encode is unavoidable (non-JPEG input, or an EXIF orientation that
+    # needs baking in). 95 is visually indistinguishable from the source
+    # for a photograph while staying far smaller/faster than PNG.
+    MAX_PHOTO_DIMENSION = int(os.environ.get("MAX_PHOTO_DIMENSION", 4096))
+    JPEG_QUALITY = int(os.environ.get("JPEG_QUALITY", 95))
+
+    # Modern phone cameras can produce large JPEGs (10-25MB on high-end
+    # sensors). 25MB comfortably covers that without leaving the upload
+    # endpoint wide open to abuse.
+    MAX_CONTENT_LENGTH = int(os.environ.get("MAX_CONTENT_LENGTH", 25 * 1024 * 1024))
+
+    # Minimum seconds between shots from the same camera -- both an
+    # authentic "winding the film" beat and a built-in throttle so the
+    # Pi never has to handle a burst of large uploads from one phone at
+    # once, even with ~70 guests using it intermittently.
+    COOLDOWN_SECONDS = float(os.environ.get("COOLDOWN_SECONDS", 3))
 
     # --- "Camera" identity cookie (anonymous, no login for guests) ---
     CAMERA_COOKIE_NAME = "camera_id"

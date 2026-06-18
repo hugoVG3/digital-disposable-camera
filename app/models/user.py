@@ -32,15 +32,33 @@ class CameraSession(db.Model):
     created_ip = db.Column(db.String(45), nullable=True)  # 45 chars fits IPv6
     last_ip = db.Column(db.String(45), nullable=True)
 
+    # When the last shot was taken -- used to enforce a short cooldown
+    # between shots (see can_take_photo / seconds_until_ready below).
+    last_photo_at = db.Column(db.DateTime, nullable=True)
+
     def remaining(self, max_photos):
         return max(0, max_photos - self.photo_count)
 
-    def can_take_photo(self, max_photos):
-        return self.photo_count < max_photos
+    def seconds_until_ready(self, cooldown_seconds):
+        """How many seconds until this camera is allowed to take another
+        shot ('winding the film'). 0 means it's ready now."""
+        if self.last_photo_at is None or cooldown_seconds <= 0:
+            return 0
+        last_photo_at = self.last_photo_at
+        if last_photo_at.tzinfo is None:
+            last_photo_at = last_photo_at.replace(tzinfo=timezone.utc)
+        elapsed = (datetime.now(timezone.utc) - last_photo_at).total_seconds()
+        return max(0.0, cooldown_seconds - elapsed)
+
+    def can_take_photo(self, max_photos, cooldown_seconds=0):
+        if self.photo_count >= max_photos:
+            return False
+        return self.seconds_until_ready(cooldown_seconds) <= 0
 
     def record_photo_taken(self, max_photos):
         """Increment the shot counter and mark the roll finished if it's now full."""
         self.photo_count += 1
+        self.last_photo_at = datetime.now(timezone.utc)
         if self.photo_count >= max_photos and self.finished_at is None:
             self.finished_at = datetime.now(timezone.utc)
 

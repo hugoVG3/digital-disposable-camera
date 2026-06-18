@@ -3,6 +3,7 @@ import os
 import shutil
 import tempfile
 
+import piexif
 import pytest
 from PIL import Image
 
@@ -17,6 +18,7 @@ def app():
     flask_app.config["PHOTOS_DIR"] = os.path.join(test_dir, "photos")
     flask_app.config["DATA_DIR"] = test_dir
     flask_app.config["MAX_PHOTOS_PER_CAMERA"] = 3  # small number, faster tests
+    flask_app.config["COOLDOWN_SECONDS"] = 0  # don't make the test suite wait around
     os.makedirs(flask_app.config["PHOTOS_DIR"], exist_ok=True)
 
     yield flask_app
@@ -32,6 +34,18 @@ def client(app):
 def fake_image_bytes():
     buf = io.BytesIO()
     Image.new("RGB", (50, 50), color="red").save(buf, format="JPEG")
+    buf.seek(0)
+    return buf
+
+
+def fake_image_bytes_with_gps():
+    buf = io.BytesIO()
+    gps_ifd = {
+        piexif.GPSIFD.GPSLatitude: ((40, 1), (0, 1), (0, 1)),
+        piexif.GPSIFD.GPSLatitudeRef: b"N",
+    }
+    exif_bytes = piexif.dump({"GPS": gps_ifd})
+    Image.new("RGB", (60, 60), color="blue").save(buf, format="JPEG", exif=exif_bytes)
     buf.seek(0)
     return buf
 
@@ -68,6 +82,50 @@ def test_capture_increments_counter_until_finished(client):
     assert response.get_json()["success"] is False
 
 
+def test_cooldown_blocks_rapid_shots(client, app):
+    app.config["COOLDOWN_SECONDS"] = 5  # re-enable it just for this test
+    client.get("/")
+
+    first = client.post(
+        "/capture",
+        data={"photo": (fake_image_bytes(), "photo.jpg")},
+        content_type="multipart/form-data",
+    )
+    assert first.get_json()["success"] is True
+
+    second = client.post(
+        "/capture",
+        data={"photo": (fake_image_bytes(), "photo.jpg")},
+        content_type="multipart/form-data",
+    )
+    assert second.status_code == 429
+    assert second.get_json()["success"] is False
+
+
+def test_photo_saved_losslessly_and_gps_stripped(client, app):
+    client.get("/")
+    response = client.post(
+        "/capture",
+        data={"photo": (fake_image_bytes_with_gps(), "photo.jpg")},
+        content_type="multipart/form-data",
+    )
+    assert response.get_json()["success"] is True
+
+    roll_dirs = os.listdir(app.config["PHOTOS_DIR"])
+    assert len(roll_dirs) == 1
+    saved_path = os.path.join(app.config["PHOTOS_DIR"], roll_dirs[0], "shot_01.jpg")
+    with open(saved_path, "rb") as f:
+        saved_bytes = f.read()
+
+    exif_dict = piexif.load(saved_bytes)
+    assert not exif_dict.get("GPS")  # GPS data removed
+
+    # Pixel data must be byte-for-byte the same image content (lossless).
+    original = Image.open(fake_image_bytes_with_gps()).convert("RGB")
+    saved = Image.open(io.BytesIO(saved_bytes)).convert("RGB")
+    assert list(original.getdata()) == list(saved.getdata())
+
+
 def test_admin_gallery_requires_login(client):
     response = client.get("/admin/gallery")
     assert response.status_code == 302
@@ -84,3 +142,26 @@ def test_admin_login_with_correct_password(client, app, monkeypatch):
 
     response = client.get("/admin/gallery")
     assert response.status_code == 200
+
+
+def test_admin_can_download_roll_zip(client, app):
+    from werkzeug.security import generate_password_hash
+
+    app.config["ADMIN_PASSWORD_HASH"] = generate_password_hash("testpass")
+
+    client.get("/")  # create a camera/roll
+    client.post(
+        "/capture",
+        data={"photo": (fake_image_bytes(), "photo.jpg")},
+        content_type="multipart/form-data",
+    )
+
+    from app.models import CameraSession
+
+    with app.app_context():
+        camera_id = CameraSession.query.first().id
+
+    client.post("/admin/login", data={"password": "testpass"})
+    response = client.get(f"/admin/gallery/{camera_id}/download")
+    assert response.status_code == 200
+    assert response.mimetype == "application/zip"

@@ -5,14 +5,15 @@
 <div class="admin-panel">
 
   {% if view == "login" %}
-    <h1>Admin login</h1>
+    <div class="admin-brand">📷 Admin</div>
+    <h1>Develop the rolls</h1>
     <form method="post" action="{{ url_for('auth.login') }}" class="login-form">
       <label for="password">Password</label>
       <input type="password" id="password" name="password" autofocus required>
       {% if error %}<p class="error">{{ error }}</p>{% endif %}
-      <button type="submit">Log in</button>
+      <button type="submit" class="primary-btn">Log in</button>
     </form>
-    <p><a href="{{ url_for('camera.index') }}">&larr; Back to camera</a></p>
+    <p class="back-link"><a href="{{ url_for('camera.index') }}">&larr; Back to camera</a></p>
 
   {% elif view == "list" %}
     <div class="admin-header">
@@ -20,14 +21,19 @@
       <a class="logout-link" href="{{ url_for('auth.logout') }}">Log out</a>
     </div>
     {% if not rolls %}
-      <p>No rolls yet. Once a guest takes a photo, their roll will show up here.</p>
+      <p class="empty-state">No rolls yet. Once a guest takes a photo, their roll will show up here.</p>
     {% else %}
+      <div class="admin-actions">
+        <a class="secondary-btn" href="{{ url_for('auth.download_all_rolls') }}">⬇ Download everything (.zip)</a>
+      </div>
       <ul class="roll-list">
         {% for roll in rolls %}
           <li class="roll-item">
-            <a href="{{ url_for('auth.view_roll', camera_id=roll.id) }}">
-              Roll {{ roll.id[:8] }} — {{ roll.photo_count }}/{{ max_photos }} shots
-              {% if roll.is_finished %}<span class="badge">finished</span>{% endif %}
+            <a class="roll-link" href="{{ url_for('auth.view_roll', camera_id=roll.id) }}">
+              <span class="roll-name">Roll {{ roll.id[:8] }}</span>
+              <span class="roll-meta">{{ roll.photo_count }}/{{ max_photos }} shots
+                {% if roll.is_finished %}<span class="badge">finished</span>{% endif %}
+              </span>
             </a>
             <form method="post" action="{{ url_for('auth.delete_roll', camera_id=roll.id) }}"
                   onsubmit="return confirm('Delete this entire roll? This cannot be undone.');">
@@ -44,16 +50,21 @@
       <a href="{{ url_for('auth.gallery') }}">&larr; All rolls</a>
     </div>
     {% if not filenames %}
-      <p>No photos on this roll yet.</p>
+      <p class="empty-state">No photos on this roll yet.</p>
     {% else %}
+      <div class="admin-actions">
+        <a class="secondary-btn" href="{{ url_for('auth.download_roll', camera_id=camera.id) }}">⬇ Download roll (.zip)</a>
+      </div>
       <div class="photo-grid">
         {% for filename in filenames %}
           <div class="photo-card">
-            <img src="{{ url_for('auth.serve_photo', camera_id=camera.id, filename=filename) }}" alt="{{ filename }}">
+            <a href="{{ url_for('auth.serve_photo', camera_id=camera.id, filename=filename) }}" target="_blank" rel="noopener">
+              <img src="{{ url_for('auth.serve_photo', camera_id=camera.id, filename=filename) }}" alt="{{ filename }}" loading="lazy">
+            </a>
             <form method="post"
                   action="{{ url_for('auth.delete_photo', camera_id=camera.id, filename=filename) }}"
                   onsubmit="return confirm('Delete this photo?');">
-              <button type="submit" class="danger">Delete</button>
+              <button type="submit" class="danger small">Delete</button>
             </form>
           </div>
         {% endfor %}

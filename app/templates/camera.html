@@ -8,32 +8,56 @@
     <a class="admin-link" href="{{ url_for('auth.login') }}" title="Admin">⚙</a>
   </div>
 
-  <div class="viewfinder">
-    <div id="flash" class="flash"></div>
-    {% if finished %}
-      <p class="viewfinder-text">🎞️</p>
-    {% else %}
-      <p class="viewfinder-text">Point &amp; shoot</p>
-    {% endif %}
-  </div>
+  {% if finished %}
+    <div class="intro-screen">
+      <div class="intro-icon">🎞️</div>
+      <h1 class="intro-title">Roll complete</h1>
+      <p class="intro-sub">All {{ max_photos }} shots are used up. Hand the camera back to get them developed.</p>
+    </div>
 
-  <div class="counter-row">
-    <span class="counter-label">SHOTS LEFT</span>
-    <span id="frame-counter" class="counter-value">{{ remaining }} / {{ max_photos }}</span>
-  </div>
+  {% else %}
+    <div id="intro-screen" class="intro-screen">
+      <div class="intro-icon">📷</div>
+      <h1 class="intro-title">Disposable Camera</h1>
+      <p class="intro-sub">{{ max_photos }} exposures. No do-overs, no peeking — just like the real thing.</p>
+      <button id="start-btn" class="primary-btn">Start shooting</button>
+    </div>
 
-  <div id="camera-controls" class="controls">
-    {% if finished %}
-      <p class="finished-msg">Roll complete! Hand the camera back to get your photos developed.</p>
-    {% else %}
-      <input type="file" id="photo-input" accept="image/*" capture="environment" hidden>
-      <button id="shutter-btn" class="shutter-btn" aria-label="Take photo"></button>
-      <p id="status-message" class="status-message"></p>
-    {% endif %}
-  </div>
+    <div id="shooting-screen" class="shooting-screen hidden">
+      <div class="viewfinder" id="viewfinder">
+        <video id="live-video" class="live-video hidden" autoplay muted playsinline></video>
+        <p id="viewfinder-placeholder" class="viewfinder-text">Point &amp; shoot</p>
+        <div class="viewfinder-frame">
+          <span class="corner tl"></span><span class="corner tr"></span>
+          <span class="corner bl"></span><span class="corner br"></span>
+        </div>
+        <div id="flash" class="flash"></div>
+      </div>
+
+      <div class="counter-row">
+        <span class="counter-label">SHOTS LEFT</span>
+        <span id="frame-counter" class="counter-value">{{ remaining }} / {{ max_photos }}</span>
+      </div>
+
+      <div id="camera-controls" class="controls">
+        <input type="file" id="photo-input" accept="image/*" capture="environment" hidden>
+        <canvas id="capture-canvas" hidden></canvas>
+        <button id="shutter-btn" class="shutter-btn" aria-label="Take photo"></button>
+        <p id="status-message" class="status-message" aria-live="polite"></p>
+      </div>
+    </div>
+  {% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script>
+  window.CAMERA_CONFIG = {
+    maxPhotos: {{ max_photos }},
+    cooldownSeconds: {{ cooldown_seconds }},
+    secondsUntilReady: {{ seconds_until_ready }},
+    remaining: {{ remaining }}
+  };
+</script>
 <script src="{{ url_for('static', filename='js/camera.js') }}"></script>
 {% endblock %}

@@ -72,7 +72,7 @@ Or use VS Code's **Testing** sidebar (flask icon) → "Configure Python Tests" �
 ## Part B — Flashing the Pi's microSD card
 
 ### B1. What you need
-- A microSD card (8 GB+; faster/higher-endurance cards help on a Zero 2 W).
+- A microSD card. The app now keeps photos at (near-)original quality rather than aggressively downsizing them, so size your card for that: modern phone JPEGs commonly run 4-10MB each. For ~70 guests × 24 shots (1,680 photos), that's roughly 7-15GB worst case — **32GB+** gives comfortable headroom. (Faster/higher-endurance cards also help on a Zero 2 W.)
 - A card reader for your computer.
 - **Raspberry Pi Imager** — [raspberrypi.com/software](https://www.raspberrypi.com/software/).
 
@@ -204,7 +204,9 @@ In the router's "Port Forwarding" / "Virtual Server" section, forward an externa
 Most home internet connections have a public IP that changes periodically, which would silently break things for your guests. Set up free dynamic DNS — e.g. [DuckDNS](https://www.duckdns.org) or [No-IP](https://www.noip.com) — which gives you a stable hostname like `mycamera.duckdns.org` that always points at your current public IP, and runs a small updater script/cron job on the Pi to keep it current.
 
 ### G4. (Recommended) HTTPS via a reverse proxy
-Browsers increasingly restrict camera/file-input behavior on plain HTTP for non-localhost addresses. [Caddy](https://caddyserver.com) is the easiest way to get free, automatic HTTPS:
+The live in-browser camera viewfinder uses `getUserMedia`, which **only works over HTTPS** (or on `localhost`) — browsers block it entirely on plain HTTP for any other address, as a privacy protection. If you skip this step, the app still works perfectly on plain HTTP: it automatically falls back to handing off to the phone's native camera app instead of showing a live preview. HTTPS just unlocks the in-page live viewfinder.
+
+[Caddy](https://caddyserver.com) is the easiest way to get free, automatic HTTPS:
 ```bash
 sudo apt install -y caddy   # or follow Caddy's install docs for Debian/Raspberry Pi OS
 ```
@@ -290,6 +292,8 @@ Tools exist to read ext4 from Windows (e.g. DiskInternals Linux Reader) or Mac (
 
 - [ ] Set a real, unique `ADMIN_PASSWORD` and `SECRET_KEY` in `.env` (not the placeholders).
 - [ ] Run a full 24-shot roll end-to-end on a real phone, then check `/admin` shows it correctly.
-- [ ] Check available SD card space against `(expected guests) × 24 photos × ~a few hundred KB` — plenty of headroom on any 8 GB+ card at the resized/compressed sizes this app saves.
+- [ ] Check available storage: photos are kept near their original quality (not aggressively compressed), so budget roughly 4-10MB per shot × `(expected guests) × 24` — a 32GB+ card comfortably covers ~70 guests.
+- [ ] Try a few rapid taps on the shutter to confirm the cooldown feels right for your event (default 3s) — adjust `COOLDOWN_SECONDS` in `.env` if you want it shorter/longer.
+- [ ] Test on at least one iPhone and one Android phone — the live viewfinder and its native-camera fallback behave slightly differently across browsers.
 - [ ] Confirm the dynamic DNS hostname resolves correctly from outside your home network (test on mobile data, not Wi-Fi).
 - [ ] Decide now how you'll pull photos afterward (Samba share is the path of least friction) so you're not figuring it out mid-event.

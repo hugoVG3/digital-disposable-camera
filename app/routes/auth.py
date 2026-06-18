@@ -20,6 +20,7 @@ from flask import (
     redirect,
     render_template,
     request,
+    send_file,
     send_from_directory,
     session,
     url_for,
@@ -76,12 +77,36 @@ def gallery():
     return render_template("gallery.html", view="list", rolls=rolls, max_photos=max_photos)
 
 
+@auth_bp.route("/gallery/download-all")
+@admin_required
+def download_all_rolls():
+    buf = photo_handler.build_all_rolls_zip(current_app.config["PHOTOS_DIR"])
+    return send_file(
+        buf,
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name="all-rolls.zip",
+    )
+
+
 @auth_bp.route("/gallery/<camera_id>")
 @admin_required
 def view_roll(camera_id):
     camera = CameraSession.query.get_or_404(camera_id)
     filenames = photo_handler.list_photos(current_app.config["PHOTOS_DIR"], camera_id)
     return render_template("gallery.html", view="detail", camera=camera, filenames=filenames)
+
+
+@auth_bp.route("/gallery/<camera_id>/download")
+@admin_required
+def download_roll(camera_id):
+    buf = photo_handler.build_roll_zip(current_app.config["PHOTOS_DIR"], camera_id)
+    return send_file(
+        buf,
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name=f"roll-{camera_id[:8]}.zip",
+    )
 
 
 @auth_bp.route("/photo/<camera_id>/<filename>")

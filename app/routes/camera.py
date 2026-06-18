@@ -17,12 +17,15 @@ camera_bp = Blueprint("camera", __name__)
 def index():
     camera = g.camera
     max_photos = current_app.config["MAX_PHOTOS_PER_CAMERA"]
+    cooldown_seconds = current_app.config["COOLDOWN_SECONDS"]
     return render_template(
         "camera.html",
         remaining=camera.remaining(max_photos),
         photo_count=camera.photo_count,
         max_photos=max_photos,
         finished=camera.is_finished,
+        cooldown_seconds=cooldown_seconds,
+        seconds_until_ready=camera.seconds_until_ready(cooldown_seconds),
     )
 
 
@@ -31,9 +34,14 @@ def index():
 def capture():
     camera = g.camera
     max_photos = current_app.config["MAX_PHOTOS_PER_CAMERA"]
+    cooldown_seconds = current_app.config["COOLDOWN_SECONDS"]
 
-    if not camera.can_take_photo(max_photos):
+    if camera.photo_count >= max_photos:
         return jsonify(success=False, error="This roll is finished. No shots left.", finished=True), 409
+
+    wait = camera.seconds_until_ready(cooldown_seconds)
+    if wait > 0:
+        return jsonify(success=False, error="Still winding the film...", cooldown_remaining=wait), 429
 
     file_storage = request.files.get("photo")
     if file_storage is None or file_storage.filename == "":
@@ -67,4 +75,5 @@ def capture():
         photo_count=camera.photo_count,
         max_photos=max_photos,
         finished=camera.is_finished,
+        cooldown_seconds=cooldown_seconds,
     )
