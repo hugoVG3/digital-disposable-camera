@@ -282,13 +282,51 @@ Tools exist to read ext4 from Windows (e.g. DiskInternals Linux Reader) or Mac (
 | `PermissionError` writing to `data/` | Run `chown -R <username>:<username> data/` on the Pi, or check the systemd unit's `User=` matches the folder owner |
 | Pillow fails to install on the Pi | `sudo apt install libjpeg-dev zlib1g-dev` then retry `pip install Pillow` |
 | Phone camera button just opens a file picker, no live camera | Expected on a laptop browser; on a phone, check it's over HTTPS (some mobile browsers restrict `capture` over plain HTTP for non-LAN hosts) |
+| `sqlalchemy.exc.OperationalError: no such column: ...` | Your `data/app.db` predates a code update that added a new column. Fixed automatically as of this version — just restart the app with the new code and it self-heals on boot (see Part J). No manual DB editing needed. |
 | Service won't start | `sudo journalctl -u disposable-camera -f` to see the live error |
 | Guests can't reach the WAN address | Check the DHCP reservation didn't drift, re-verify the port forward, and confirm DuckDNS updated to your current public IP |
 | Rate limit (`429`) hit during testing | Expected protection working as intended — wait a minute, or temporarily raise the limits in `app/routes/camera.py` / `auth.py` while testing |
 
 ---
 
-## Part J — Before you actually hand it to guests
+## Part J — Updating the app later (without losing existing rolls)
+
+At some point you'll likely pull a code update (a bug fix, a new feature)
+onto a Pi that already has real guest rolls sitting in `data/app.db` and
+`data/photos/`. Here's the safe way to do it:
+
+```bash
+cd ~/digital-disposable-camera
+sudo systemctl stop disposable-camera
+git pull
+source venv/bin/activate
+pip install -r requirements.txt   # in case dependencies changed
+sudo systemctl start disposable-camera
+sudo systemctl status disposable-camera
+```
+
+As of this version, the app automatically checks its database against
+its models on every startup and adds any missing columns on its own
+(see `sync_schema_with_models()` in `app/__init__.py`) — this is exactly
+what fixed the `no such column` crash some earlier testing ran into.
+Existing rolls, photo counts, and IP records are left untouched; only
+brand-new columns get added (filled in as empty/NULL for old rows).
+
+This lightweight self-healing only *adds* missing columns — it
+deliberately doesn't rename or remove columns, or change a column's
+type, since guessing at those safely isn't possible without real
+migration history. If a future change to this project ever needs that,
+reach for a proper migration tool (`Flask-Migrate`/Alembic) instead of
+extending this further. For everything this app's schema has needed so
+far, the simple version is enough and avoids an extra dependency on a
+Pi Zero 2W.
+
+If you ever genuinely want to wipe everything and start over (e.g.
+between two unrelated events), stop the service and delete both
+`data/app.db` and the contents of `data/photos/` — they'll be recreated
+fresh on the next start.
+
+## Part K — Before you actually hand it to guests
 
 - [ ] Set a real, unique `ADMIN_PASSWORD` and `SECRET_KEY` in `.env` (not the placeholders).
 - [ ] Run a full 24-shot roll end-to-end on a real phone, then check `/admin` shows it correctly.

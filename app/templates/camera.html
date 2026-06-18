@@ -1,51 +1,100 @@
 {% extends "base.html" %}
-{% block title %}Disposable Camera{% endblock %}
+{% block title %}Cámara Desechable{% endblock %}
 
 {% block content %}
 <div class="camera-body">
   <div class="camera-top">
-    <span class="brand">📷 DISPOSABLE</span>
+    <span class="brand">📷 DESECHABLE</span>
     <a class="admin-link" href="{{ url_for('auth.login') }}" title="Admin">⚙</a>
   </div>
 
   {% if finished %}
     <div class="intro-screen">
       <div class="intro-icon">🎞️</div>
-      <h1 class="intro-title">Roll complete</h1>
-      <p class="intro-sub">All {{ max_photos }} shots are used up. Hand the camera back to get them developed.</p>
+      <h1 class="intro-title">¡Carrete completo!</h1>
+      <p class="intro-sub">Has usado todas las fotos. Devuelve la cámara para que podamos revelarlas — ¡pronto las verás todas!</p>
     </div>
 
   {% else %}
+    <!-- SPLASH SCREEN -->
     <div id="intro-screen" class="intro-screen">
       <div class="intro-icon">📷</div>
-      <h1 class="intro-title">Disposable Camera</h1>
-      <p class="intro-sub">{{ max_photos }} exposures. No do-overs, no peeking — just like the real thing.</p>
-      <button id="start-btn" class="primary-btn">Start shooting</button>
+      <h1 class="intro-title">Cámara Desechable</h1>
+
+      <div class="intro-rules">
+        <p class="intro-rule">📸 Tienes <strong>{{ max_photos }} fotos</strong> — úsalas bien</p>
+        <p class="intro-rule">🙈 <strong>No puedes ver</strong> tus fotos ni las de nadie más</p>
+        <p class="intro-rule">🎞️ Las fotos se <strong>revelan al final</strong>, como una cámara de verdad</p>
+        <p class="intro-rule">✨ No hay filtros, no hay retomas — <strong>¡hazlo a la primera!</strong></p>
+      </div>
+
+      <button id="start-btn" class="primary-btn">¡Empezar a disparar!</button>
+      <p class="intro-hint">Pulsa el botón para abrir la cámara</p>
     </div>
 
+    <!-- SHOOTING SCREEN -->
     <div id="shooting-screen" class="shooting-screen hidden">
+
+      <!-- Viewfinder -->
       <div class="viewfinder" id="viewfinder">
         <video id="live-video" class="live-video hidden" autoplay muted playsinline></video>
-        <p id="viewfinder-placeholder" class="viewfinder-text">Point &amp; shoot</p>
+
+        <!-- Loading state while camera negotiates -->
+        <div id="camera-loading" class="viewfinder-overlay">
+          <div class="loading-spinner"></div>
+          <p class="overlay-text">Cargando cámara...</p>
+        </div>
+
+        <!-- Developing overlay (shown while uploading) -->
+        <div id="developing-overlay" class="viewfinder-overlay developing hidden">
+          <div class="developing-inner">
+            <div class="film-strip">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <p class="overlay-text">Revelando...</p>
+          </div>
+        </div>
+
+        <!-- Fallback placeholder (no live camera) -->
+        <div id="viewfinder-placeholder" class="viewfinder-placeholder hidden">
+          <span class="placeholder-icon">📷</span>
+          <p>Pulsa el disparador</p>
+        </div>
+
+        <!-- Reticle corners -->
         <div class="viewfinder-frame">
           <span class="corner tl"></span><span class="corner tr"></span>
           <span class="corner bl"></span><span class="corner br"></span>
         </div>
+
+        <!-- Flash overlay -->
         <div id="flash" class="flash"></div>
+
+        <!-- Toast for last shot -->
+        <div id="toast" class="toast hidden"></div>
       </div>
 
+      <!-- Counter + flash toggle row -->
       <div class="counter-row">
-        <span class="counter-label">SHOTS LEFT</span>
-        <span id="frame-counter" class="counter-value">{{ remaining }} / {{ max_photos }}</span>
+        <div class="counter-left">
+          <span class="counter-label">FOTOS</span>
+          <span id="frame-counter" class="counter-value">{{ remaining }} / {{ max_photos }}</span>
+        </div>
+        <button id="flash-toggle" class="flash-toggle" title="Flash" aria-label="Alternar flash">
+          <span id="flash-icon">⚡</span>
+        </button>
       </div>
 
+      <!-- Shutter + status -->
       <div id="camera-controls" class="controls">
         <input type="file" id="photo-input" accept="image/*" capture="environment" hidden>
         <canvas id="capture-canvas" hidden></canvas>
-        <button id="shutter-btn" class="shutter-btn" aria-label="Take photo"></button>
+        <button id="shutter-btn" class="shutter-btn" aria-label="Tomar foto" disabled></button>
         <p id="status-message" class="status-message" aria-live="polite"></p>
       </div>
-    </div>
+
+    </div><!-- /shooting-screen -->
+
   {% endif %}
 </div>
 {% endblock %}

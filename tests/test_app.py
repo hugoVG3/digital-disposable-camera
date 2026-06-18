@@ -165,3 +165,60 @@ def test_admin_can_download_roll_zip(client, app):
     response = client.get(f"/admin/gallery/{camera_id}/download")
     assert response.status_code == 200
     assert response.mimetype == "application/zip"
+
+
+def test_starting_from_an_older_database_schema_self_heals(tmp_path, monkeypatch):
+    """
+    Regression test for the exact crash a stale data/app.db caused after
+    CameraSession gained new columns (e.g. last_photo_at for the cooldown
+    feature): booting the app against a database built with an *older*
+    version of the schema should auto-add the missing column instead of
+    raising sqlalchemy.exc.OperationalError, and must not lose existing
+    rows in the process.
+    """
+    import sqlite3
+
+    from config import DevelopmentConfig
+
+    db_path = tmp_path / "old.db"
+    conn = sqlite3.connect(db_path)
+    conn.execute(
+        """
+        CREATE TABLE camera_sessions (
+            id VARCHAR(32) PRIMARY KEY,
+            created_at DATETIME,
+            photo_count INTEGER NOT NULL,
+            finished_at DATETIME,
+            created_ip VARCHAR(45),
+            last_ip VARCHAR(45)
+        )
+        """
+    )
+    conn.execute(
+        "INSERT INTO camera_sessions VALUES ('abc123', '2026-06-01 00:00:00', 5, NULL, '1.2.3.4', '1.2.3.4')"
+    )
+    conn.commit()
+    conn.close()
+
+    # config.py reads DATABASE_URL from the environment once at import
+    # time, so by this point in the test session it's too late for an
+    # os.environ change to matter -- patch the resolved class attribute
+    # that create_app() actually reads instead.
+    monkeypatch.setattr(DevelopmentConfig, "SQLALCHEMY_DATABASE_URI", f"sqlite:///{db_path}")
+
+    flask_app = create_app("development")
+    flask_app.config["PHOTOS_DIR"] = str(tmp_path / "photos")
+    os.makedirs(flask_app.config["PHOTOS_DIR"], exist_ok=True)
+
+    test_client = flask_app.test_client()
+    test_client.set_cookie("camera_id", "abc123")
+    response = test_client.get("/")
+    assert response.status_code == 200
+
+    with flask_app.app_context():
+        from app.models import CameraSession
+
+        camera = db.session.get(CameraSession, "abc123")
+        assert camera.photo_count == 5  # pre-existing data preserved
+        assert camera.created_ip == "1.2.3.4"  # pre-existing data preserved
+        assert camera.last_photo_at is None  # new column, backfilled as NULL

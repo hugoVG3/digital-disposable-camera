@@ -1,77 +1,96 @@
+/* =====================================================
+   CÁMARA DESECHABLE — Stylesheet
+   ===================================================== */
+
 :root {
-  --camera-yellow: #f6c945;
-  --camera-yellow-dark: #d99f1b;
-  --camera-body-grad: linear-gradient(155deg, #f8d35a 0%, #f1bd2f 45%, #dd9e16 100%);
-  --body-dark: #232323;
-  --body-darker: #161616;
-  --text-light: #fdf6e3;
-  --accent-green: #36d399;
-  --accent-amber: #f5a623;
-  --danger: #d64545;
-  --danger-dark: #b53636;
-  --radius-lg: 22px;
-  --radius-md: 14px;
-  --radius-sm: 8px;
-  --shadow-deep: 0 18px 40px rgba(0, 0, 0, 0.45);
+  --yellow:        #f6c945;
+  --yellow-dark:   #d99f1b;
+  --yellow-grad:   linear-gradient(155deg, #f8d35a 0%, #f1bd2f 45%, #dd9e16 100%);
+  --dark:          #1a1a1a;
+  --darker:        #111111;
+  --text-on-dark:  #fdf6e3;
+  --text-on-cam:   #1a1a1a;
+  --green:         #36d399;
+  --amber:         #f5a623;
+  --red:           #d64545;
+  --red-dark:      #b53636;
+  --radius-xl:     24px;
+  --radius-lg:     16px;
+  --radius-md:     10px;
+  --radius-sm:     7px;
+  --shadow:        0 20px 48px rgba(0,0,0,0.5);
 }
 
-* { box-sizing: border-box; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ---- Full-screen body, no scroll ---- */
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
 
 body {
-  margin: 0;
-  min-height: 100vh;
-  background: radial-gradient(circle at top, #2e2e2e 0%, #161616 75%);
-  color: var(--text-light);
+  background: radial-gradient(circle at 30% 20%, #2c2c2c 0%, #111 70%);
+  color: var(--text-on-dark);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   display: flex;
   justify-content: center;
+  align-items: stretch;
 }
 
 .app-shell {
   width: 100%;
   max-width: 430px;
-  min-height: 100vh;
-  padding: 18px;
+  height: 100%;           /* fill full viewport height */
+  padding: 14px;
   display: flex;
   flex-direction: column;
 }
 
 .hidden { display: none !important; }
 
-/* ================= Camera (guest) view ================= */
+/* =====================================================
+   CAMERA BODY
+   ===================================================== */
 
 .camera-body {
-  background: var(--camera-body-grad);
-  border-radius: var(--radius-lg);
-  padding: 18px;
+  background: var(--yellow-grad);
+  border-radius: var(--radius-xl);
+  padding: 16px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  color: var(--body-darker);
-  box-shadow: var(--shadow-deep), inset 0 2px 0 rgba(255, 255, 255, 0.4);
+  color: var(--text-on-cam);
+  box-shadow: var(--shadow), inset 0 2px 0 rgba(255,255,255,0.45);
+  overflow: hidden;        /* children don't escape the rounded corners */
+  min-height: 0;           /* needed for flex children to shrink properly */
 }
 
+/* ---- Top bar ---- */
 .camera-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-weight: 800;
   letter-spacing: 1.5px;
-  font-size: 0.85rem;
-  padding-bottom: 4px;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  margin-bottom: 10px;
 }
 
 .admin-link {
   text-decoration: none;
-  color: var(--body-darker);
-  opacity: 0.45;
-  font-size: 1.25rem;
-  padding: 4px;
+  color: var(--text-on-cam);
+  opacity: 0.35;
+  font-size: 1.2rem;
+  padding: 6px;
+  -webkit-tap-highlight-color: transparent;
 }
+.admin-link:active { opacity: 0.7; }
 
-.admin-link:active { opacity: 0.8; }
-
-/* ---- Intro / splash / finished screen ---- */
+/* =====================================================
+   SPLASH / INTRO SCREEN
+   ===================================================== */
 
 .intro-screen {
   flex: 1;
@@ -80,67 +99,95 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 6px;
-  padding: 24px 12px;
-  animation: fadeIn 350ms ease-out;
+  gap: 0;
+  padding: 10px 8px 16px;
+  animation: fadeUp 380ms ease-out;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .intro-icon {
-  font-size: 3.4rem;
-  animation: floatPulse 2.6s ease-in-out infinite;
+  font-size: 3rem;
+  margin-bottom: 8px;
+  animation: floatPulse 2.8s ease-in-out infinite;
 }
 
 .intro-title {
-  font-size: 1.5rem;
-  margin: 6px 0 0;
-  font-weight: 800;
+  font-size: 1.45rem;
+  font-weight: 900;
+  margin-bottom: 16px;
+  letter-spacing: -0.3px;
 }
 
-.intro-sub {
-  font-size: 0.92rem;
-  opacity: 0.75;
-  max-width: 280px;
-  margin: 0 0 14px;
+/* Rules card */
+.intro-rules {
+  background: rgba(0,0,0,0.12);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  width: 100%;
+  max-width: 320px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
 }
+
+.intro-rule {
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--text-on-cam);
+}
+
+.intro-rule strong { font-weight: 800; }
 
 .primary-btn {
-  background: var(--body-darker);
-  color: var(--camera-yellow);
+  background: var(--darker);
+  color: var(--yellow);
   border: none;
-  padding: 14px 30px;
+  padding: 16px 36px;
   border-radius: 999px;
-  font-weight: 700;
-  font-size: 1rem;
-  letter-spacing: 0.3px;
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: 0.2px;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
-  transition: transform 120ms ease;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.35);
+  transition: transform 100ms ease, box-shadow 100ms ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.primary-btn:active { transform: scale(0.95); box-shadow: 0 4px 10px rgba(0,0,0,0.25); }
+
+.intro-hint {
+  margin-top: 10px;
+  font-size: 0.75rem;
+  opacity: 0.55;
 }
 
-.primary-btn:active { transform: scale(0.95); }
-
-.finished-msg { text-align: center; font-weight: 600; }
-
-/* ---- Shooting screen ---- */
+/* =====================================================
+   SHOOTING SCREEN
+   ===================================================== */
 
 .shooting-screen {
   flex: 1;
   display: flex;
   flex-direction: column;
-  animation: fadeIn 350ms ease-out;
+  animation: fadeUp 350ms ease-out;
+  min-height: 0;
 }
 
+/* ---- Viewfinder ---- */
 .viewfinder {
   position: relative;
   flex: 1;
-  margin: 14px 0;
-  background: var(--body-darker);
-  border-radius: var(--radius-md);
+  background: var(--darker);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 240px;
-  overflow: hidden;
+  margin-bottom: 10px;
+  min-height: 0;
 }
 
 .live-video {
@@ -151,13 +198,88 @@ body {
   object-fit: cover;
 }
 
-.viewfinder-text {
-  color: var(--text-light);
-  opacity: 0.55;
-  font-size: 1rem;
+/* ---- Generic overlay (loading / developing) ---- */
+.viewfinder-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  z-index: 4;
+  background: rgba(17,17,17,0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Loading spinner */
+.loading-spinner {
+  width: 38px;
+  height: 38px;
+  border: 3px solid rgba(255,255,255,0.15);
+  border-top-color: var(--yellow);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.overlay-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-on-dark);
+  letter-spacing: 0.5px;
+  opacity: 0.85;
+}
+
+/* ---- Developing overlay ---- */
+.developing {
+  background: rgba(17,17,17,0.88);
+}
+
+.developing-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Film strip animation */
+.film-strip {
+  display: flex;
+  gap: 5px;
+}
+
+.film-strip span {
+  width: 10px;
+  height: 30px;
+  background: var(--yellow);
+  border-radius: 2px;
+  animation: filmBounce 0.7s ease-in-out infinite;
+}
+.film-strip span:nth-child(1) { animation-delay: 0s; }
+.film-strip span:nth-child(2) { animation-delay: 0.1s; }
+.film-strip span:nth-child(3) { animation-delay: 0.2s; }
+.film-strip span:nth-child(4) { animation-delay: 0.3s; }
+.film-strip span:nth-child(5) { animation-delay: 0.4s; }
+
+/* ---- Placeholder (no live camera) ---- */
+.viewfinder-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-on-dark);
+  opacity: 0.45;
   z-index: 1;
 }
 
+.placeholder-icon { font-size: 2.2rem; }
+.viewfinder-placeholder p { font-size: 0.85rem; }
+
+/* ---- Corner reticle ---- */
 .viewfinder-frame {
   position: absolute;
   inset: 10px;
@@ -167,131 +289,188 @@ body {
 
 .viewfinder-frame .corner {
   position: absolute;
-  width: 22px;
-  height: 22px;
-  border: 3px solid rgba(253, 246, 227, 0.7);
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(253,246,227,0.65);
 }
+.corner.tl { top:0; left:0; border-right:none; border-bottom:none; border-top-left-radius:5px; }
+.corner.tr { top:0; right:0; border-left:none; border-bottom:none; border-top-right-radius:5px; }
+.corner.bl { bottom:0; left:0; border-right:none; border-top:none; border-bottom-left-radius:5px; }
+.corner.br { bottom:0; right:0; border-left:none; border-top:none; border-bottom-right-radius:5px; }
 
-.corner.tl { top: 0; left: 0; border-right: none; border-bottom: none; border-top-left-radius: 6px; }
-.corner.tr { top: 0; right: 0; border-left: none; border-bottom: none; border-top-right-radius: 6px; }
-.corner.bl { bottom: 0; left: 0; border-right: none; border-top: none; border-bottom-left-radius: 6px; }
-.corner.br { bottom: 0; right: 0; border-left: none; border-top: none; border-bottom-right-radius: 6px; }
-
+/* ---- Flash overlay ---- */
 .flash {
   position: absolute;
   inset: 0;
   background: white;
   opacity: 0;
   pointer-events: none;
-  z-index: 3;
+  z-index: 5;
 }
-
 .flash.flash-active {
-  opacity: 0.92;
-  transition: opacity 220ms ease-out;
+  opacity: 0.94;
+  transition: opacity 200ms ease-out;
 }
 
+/* ---- Toast ---- */
+.toast {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.78);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 7px 18px;
+  border-radius: 999px;
+  z-index: 6;
+  white-space: nowrap;
+  animation: toastIn 250ms ease-out;
+}
+
+/* ---- Counter row ---- */
 .counter-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--body-darker);
+  background: var(--darker);
   border-radius: var(--radius-sm);
   padding: 8px 14px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.counter-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .counter-label {
-  font-size: 0.68rem;
-  letter-spacing: 1.5px;
-  opacity: 0.65;
-  color: var(--text-light);
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  opacity: 0.55;
+  color: var(--text-on-dark);
 }
 
 .counter-value {
   font-family: "Courier New", monospace;
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: var(--accent-green);
-  text-shadow: 0 0 8px rgba(54, 211, 153, 0.5);
-  transition: color 200ms ease;
+  color: var(--green);
+  text-shadow: 0 0 8px rgba(54,211,153,0.45);
+  transition: color 200ms ease, text-shadow 200ms ease;
 }
-
 .counter-value.low {
-  color: var(--accent-amber);
-  text-shadow: 0 0 8px rgba(245, 166, 35, 0.5);
+  color: var(--amber);
+  text-shadow: 0 0 8px rgba(245,166,35,0.45);
 }
-
 .counter-value.critical {
-  color: var(--danger);
-  text-shadow: 0 0 8px rgba(214, 69, 69, 0.5);
+  color: var(--red);
+  text-shadow: 0 0 8px rgba(214,69,69,0.45);
 }
 
+/* ---- Flash toggle ---- */
+.flash-toggle {
+  background: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.18);
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 150ms ease, opacity 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.flash-toggle.flash-off {
+  opacity: 0.4;
+}
+.flash-toggle:active { background: rgba(255,255,255,0.2); }
+
+/* ---- Controls + shutter ---- */
 .controls {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding-bottom: 6px;
+  gap: 8px;
+  padding-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .shutter-btn {
   position: relative;
-  width: 86px;
-  height: 86px;
+  width: 82px;
+  height: 82px;
   border-radius: 50%;
-  border: 6px solid var(--body-darker);
+  border: 5px solid var(--darker);
   background: #fff;
-  box-shadow: inset 0 0 0 4px var(--camera-yellow-dark), 0 6px 14px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 0 0 4px var(--yellow-dark), 0 6px 16px rgba(0,0,0,0.32);
   cursor: pointer;
+  transition: transform 90ms ease, box-shadow 90ms ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
-
-.shutter-btn:active:not(:disabled) { transform: scale(0.94); }
-
+.shutter-btn:active:not(:disabled) {
+  transform: scale(0.93);
+  box-shadow: inset 0 0 0 4px var(--yellow-dark), 0 3px 8px rgba(0,0,0,0.25);
+}
 .shutter-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
+/* Winding ring spinner */
 .shutter-btn.winding::after {
   content: "";
   position: absolute;
   inset: -8px;
   border-radius: 50%;
   border: 3px solid transparent;
-  border-top-color: var(--body-darker);
-  animation: spin 0.9s linear infinite;
+  border-top-color: var(--darker);
+  animation: spin 0.85s linear infinite;
 }
 
 .status-message {
-  min-height: 1.2em;
-  font-size: 0.85rem;
-  font-weight: 600;
-  opacity: 0.8;
+  min-height: 1.1em;
+  font-size: 0.82rem;
+  font-weight: 700;
+  opacity: 0.75;
+  text-align: center;
 }
 
-/* ================= Admin panel ================= */
+/* =====================================================
+   FINISHED SCREEN (reused .intro-screen layout)
+   ===================================================== */
+
+/* Already covered by .intro-screen above */
+
+/* =====================================================
+   ADMIN PANEL
+   ===================================================== */
 
 .admin-panel {
   background: #1c1c1c;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   padding: 22px;
   flex: 1;
-  box-shadow: var(--shadow-deep);
+  box-shadow: var(--shadow);
+  overflow-y: auto;
 }
 
 .admin-brand {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   letter-spacing: 1.5px;
-  opacity: 0.6;
+  opacity: 0.55;
   font-weight: 700;
   margin-bottom: 4px;
 }
 
-.admin-panel h1 {
-  font-size: 1.35rem;
-  margin: 4px 0 16px;
-}
+.admin-panel h1 { font-size: 1.3rem; margin: 4px 0 16px; }
 
 .admin-header {
   display: flex;
@@ -301,11 +480,11 @@ body {
 }
 
 .logout-link, .admin-panel a, .back-link a {
-  color: var(--camera-yellow);
+  color: var(--yellow);
   text-decoration: none;
 }
 
-.empty-state { opacity: 0.7; font-size: 0.9rem; }
+.empty-state { opacity: 0.65; font-size: 0.88rem; }
 
 .login-form {
   display: flex;
@@ -313,68 +492,49 @@ body {
   gap: 10px;
   max-width: 280px;
 }
-
-.login-form label {
-  font-size: 0.8rem;
-  opacity: 0.7;
-}
-
+.login-form label { font-size: 0.78rem; opacity: 0.65; }
 .login-form input {
-  padding: 11px;
+  padding: 12px;
   border-radius: var(--radius-sm);
   border: 1px solid #3a3a3a;
   background: #111;
-  color: var(--text-light);
+  color: var(--text-on-dark);
+  font-size: 1rem;
 }
 
 .error { color: #ff8a80; font-size: 0.85rem; }
+.back-link { margin-top: 18px; font-size: 0.88rem; }
 
-.back-link { margin-top: 18px; font-size: 0.9rem; }
-
-.admin-actions {
-  display: flex;
-  margin-bottom: 14px;
-}
+.admin-actions { display: flex; margin-bottom: 14px; }
 
 .secondary-btn {
   display: inline-block;
   background: #2a2a2a;
   border: 1px solid #3d3d3d;
-  color: var(--camera-yellow);
+  color: var(--yellow);
   padding: 9px 16px;
   border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 600;
+  text-decoration: none;
 }
 
-.roll-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
+.roll-list { list-style: none; padding: 0; }
 .roll-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid #2e2e2e;
+  border-bottom: 1px solid #2a2a2a;
   gap: 10px;
 }
-
-.roll-link {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-}
-
+.roll-link { display: flex; flex-direction: column; gap: 2px; flex: 1; }
 .roll-name { font-weight: 600; }
-.roll-meta { font-size: 0.8rem; opacity: 0.65; }
+.roll-meta { font-size: 0.78rem; opacity: 0.6; }
 
 .badge {
-  font-size: 0.65rem;
-  background: var(--accent-green);
+  font-size: 0.63rem;
+  background: var(--green);
   color: #0a0a0a;
   padding: 2px 7px;
   border-radius: 999px;
@@ -385,60 +545,70 @@ body {
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin: 16px 0;
+  gap: 10px;
+  margin: 14px 0;
 }
-
 .photo-card {
   background: #111;
   border-radius: var(--radius-sm);
-  padding: 6px;
+  padding: 5px;
 }
-
 .photo-card img {
   width: 100%;
-  border-radius: 6px;
+  border-radius: 5px;
   display: block;
-  transition: transform 150ms ease;
 }
-
-.photo-card a:active img { transform: scale(0.97); }
+.photo-card a:active img { opacity: 0.85; }
 
 .login-form button,
 .danger {
-  padding: 10px;
+  padding: 12px;
   border-radius: var(--radius-sm);
   border: none;
   cursor: pointer;
   font-weight: 700;
   width: 100%;
+  font-size: 0.95rem;
 }
+.danger { background: var(--red); color: #fff; }
+.danger:active { background: var(--red-dark); }
+.danger.small { margin-top: 6px; padding: 7px; font-size: 0.78rem; }
 
-.danger.small {
-  margin-top: 6px;
-  padding: 6px;
-  font-size: 0.78rem;
-}
+/* =====================================================
+   ANIMATIONS
+   ===================================================== */
 
-.danger {
-  background: var(--danger);
-  color: white;
-}
-
-.danger:active { background: var(--danger-dark); }
-
-/* ================= Animations ================= */
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes floatPulse {
   0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-4px) scale(1.05); }
+  50%       { transform: translateY(-5px) scale(1.06); }
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes filmBounce {
+  0%, 100% { transform: scaleY(1);   opacity: 1; }
+  50%       { transform: scaleY(0.5); opacity: 0.5; }
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* =====================================================
+   SAFE AREA (notch / home-bar phones)
+   ===================================================== */
+
+.app-shell {
+  padding-top: max(14px, env(safe-area-inset-top));
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
+  padding-left: max(14px, env(safe-area-inset-left));
+  padding-right: max(14px, env(safe-area-inset-right));
 }
